@@ -1,12 +1,12 @@
 // src/screens/ConfigScreen.js
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text,TextInput, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert, KeyboardAvoidingView, Platform,} from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { MQTTContext } from '../context/MQTTContext';
+import { useMQTT } from '../components/MQTTContext';
 
 export default function ConfigScreen() {
-  const { status, errorMsg, config, connect, disconnect } = useContext(MQTTContext);
+  const { status, errorMsg, config, connect, disconnect } = useMQTT();
 
   const [brokerIp, setBrokerIp] = useState('');
   const [brokerPort, setBrokerPort] = useState('9001');

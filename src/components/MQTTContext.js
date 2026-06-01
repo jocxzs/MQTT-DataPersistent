@@ -1,8 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import init from 'react_native_mqtt';
+import mqtt from 'mqtt';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-// ... (Manter a inicialização do init do Paho MQTT igual ao código anterior)
 
 const MQTTContext = createContext(null);
 
@@ -43,38 +41,48 @@ export const MQTTProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const mqttClient = new window.Paho.MQTT.Client(config.host, Number(config.port), config.clientId);
+    const mqttUrl = `ws://${config.host}:${config.port}/mqtt`;
+    const mqttClient = mqtt.connect(mqttUrl, {
+      clientId: config.clientId,
+      reconnectPeriod: 3000,
+      connectTimeout: 10000,
+      clean: true,
+    });
 
-    mqttClient.onConnectionLost = (responseObject) => {
+    mqttClient.on('connect', () => {
+      setIsConnected(true);
+      setClient(mqttClient);
+    });
+
+    mqttClient.on('reconnect', () => {
+      console.log('[MQTTContext] reconnecting');
+    });
+
+    mqttClient.on('offline', () => {
       setIsConnected(false);
-    };
+    });
 
-    mqttClient.onMessageArrived = (message) => {
-      const topic = message.destinationName;
-      const payload = message.payloadString;
-      const timestamp = new Date().toLocaleTimeString(); // Registra o horário da leitura
+    mqttClient.on('error', (error) => {
+      console.error('[MQTTContext] MQTT error:', error);
+    });
+
+    mqttClient.on('message', (topic, message) => {
+      const payload = message.toString();
+      const timestamp = new Date().toLocaleTimeString();
 
       setCurrentMessage({ topic, payload });
 
-      // Adiciona a nova leitura ao histórico (limitando aos últimos 50 registros para não estourar a memória)
       setHistory((prevHistory) => {
         const updatedHistory = [{ topic, payload, timestamp }, ...prevHistory].slice(0, 50);
-        saveToStorage(updatedHistory); // Salva no AsyncStorage
+        saveToStorage(updatedHistory);
         return updatedHistory;
       });
-    };
-
-    mqttClient.connect({
-      onSuccess: () => {
-        setIsConnected(true);
-        setClient(mqttClient);
-      },
-      onFailure: () => setIsConnected(false),
-      useSSL: false,
     });
 
     return () => {
-      if (mqttClient.isConnected()) mqttClient.disconnect();
+      if (mqttClient) {
+        mqttClient.end(true);
+      }
     };
   }, []);
 

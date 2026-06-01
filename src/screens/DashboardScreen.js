@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Button } from 'react-native';
-import { useMQTT } from './MQTTContext';
+import { useMQTT } from '../components/MQTTContext';
 
 export default function DashboardScreen({ navigation }) {
   const { isConnected, history, subscribe } = useMQTT();
