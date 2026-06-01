@@ -1,8 +1,9 @@
 // src/hooks/useMQTT.js
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { connectMQTT, subscribeTopic, unsubscribeTopic, publishMessage, disconnectMQTT, isConnected,
-} from '../services/mqttservices';
-import { saveMessage, getMessages, getTopics, saveTopics, getConfig, saveConfig } from '../services/storageservice';
+} from '../services/MqttServices';
+import { saveMessage, getMessages, getTopics, saveTopics, getConfig, saveConfig }
+ from '../services/StorageService';
 
 export function useMQTT() {
   const [status, setStatus] = useState('disconnected');
